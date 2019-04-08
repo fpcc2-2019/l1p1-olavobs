@@ -14,9 +14,13 @@ library(ggbeeswarm)
 theme_set(theme_bw())
 ```
 
-```{r read}
+```{r}
 climas = read_csv(here::here("data/clima_cg_jp-semanal.csv"), 
                   col_types = "cTdddddd")
+
+climas %>%
+    mutate(mes = lubridate::month(semana), ano = lubridate::year(semana)) %>%
+    write_csv(here::here("data/clima_cg_jp-semanal.csv"))
 
 glimpse(climas)
 ```
@@ -24,17 +28,35 @@ glimpse(climas)
 ## Temperatura
 
 ### Onde é mais quente?
-
+```{r read}
+calor <- climas %>% 
+  group_by(cidade) %>% 
+  summarise((sum = sum(tmedia))/n())
+```
 
 ### As temperaturas máximas semanais (o pico do calor) são tão diferentes quanto as médias? Mais?  
 
 
 ### Quais os meses mais quentes e mais frios? 
+```{r}
+climas %>% 
+  group_by(cidade, mes) %>% 
+  summarise((temp_media = sum(tmedia))/n())
+  
+```
 
 
 ### Qual foi o São João  mais frio de CG que está nos nossos dados?
-
-
+```{r}
+climas %>% 
+  filter(cidade == "Campina Grande") %>%
+  filter(mes == 6 | mes == 7) %>% 
+  select(tmedia, ano, chuva) %>% 
+  group_by(ano) %>% 
+  summarise(chuvoso = sum(chuva)) %>% 
+  ggplot(mapping = aes(x = ano, y = chuvoso)) + 
+  geom_col()
+```
 
 ## Chuva
 
@@ -43,6 +65,15 @@ glimpse(climas)
 Como é a distribuição do volume de chuvas por semana em JP e CG? A chuva varia mais ou menos que a temperatura? O formato da distribuição é igual? 
 
 ### No geral, onde chove mais?
+```{r}
+climas %>% 
+  select(chuva, cidade) %>% 
+  group_by(cidade) %>% 
+  summarise(chuvosa = sum(chuva)) %>% 
+  ggplot(mapping = aes(x = cidade, y = chuvosa)) + 
+  geom_col()
+```
+
 
 ### A distribuição é diferente em meses específicos? 
 
