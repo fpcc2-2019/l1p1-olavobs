@@ -28,34 +28,44 @@ glimpse(climas)
 ## Temperatura
 
 ### Onde é mais quente?
+
+Analisando a temperatura nas cidades de Campina Grande e João Pessoa, observamos que a temperatura média da cidade de João Pessoa é mais elevada do que em Campina Grande, pois ela tem um pico mais alto, fazendo com que ela aconteça com mais frequência e além disso, a distribuição da temperatura dela está mais para a direita do gráfico, fazendo com que ela seja maior. Para ser possível essa observação, foram utilizados os dados da temperatura média dos últimos 15 anos.
 ```{r read}
-calor <- climas %>% 
-  group_by(cidade) %>% 
-  summarise((sum = sum(tmedia))/n())
+climas %>% 
+    ggplot(aes(x = tmedia, fill = cidade)) + 
+    geom_density(alpha = .4)
 ```
 
 ### As temperaturas máximas semanais (o pico do calor) são tão diferentes quanto as médias? Mais?  
 
 
 ### Quais os meses mais quentes e mais frios? 
+Observando a distriubuição ao longo dos anos, fica nítido que tanto em João Pessoa quanto em Campina Grande possui épocas mais quentes e um período onde a temperatura diminui, é sempre um ciclo, no começo do ano a temperatura é mais quente, depois vai diminuindo, por isso os meses de junho e julho são os mais frios do ano, depois a temperatura volta a aumentar, então de novembro até março são os meses mais quentes.
 ```{r}
 climas %>% 
-  group_by(cidade, mes) %>% 
-  summarise((temp_media = sum(tmedia))/n())
-  
+  filter(ano > 2003) %>% 
+  group_by(mes, cidade) %>% 
+  summarise(temp_media = (sum(tmedia))/n()) %>% 
+  ggplot(mapping = aes(x=mes, y = temp_media)) +
+  geom_col(width = .6, fill = "dark red") + 
+  facet_wrap(~ cidade) +
+    labs(
+        x = "mês",
+        y = "temperatura média"
+    )
 ```
 
 
 ### Qual foi o São João  mais frio de CG que está nos nossos dados?
+Observando a distribuição dos dados abaixo podemos observar a mediana dos boxplots, fazendo isso, notaremos que os anos de 2004 e o de 2011 foram bem semelhantes, mas 2004 obteve uma temperatura mínima menor do que 2011. Então eu diria que 2004, utilizando o critério de desempate o registro da data mais fria, foi o ano com o São João mais frio de Campina Grande nos últimos 15 anos
 ```{r}
 climas %>% 
-  filter(cidade == "Campina Grande") %>%
-  filter(mes == 6 | mes == 7) %>% 
-  select(tmedia, ano, chuva) %>% 
-  group_by(ano) %>% 
-  summarise(chuvoso = sum(chuva)) %>% 
-  ggplot(mapping = aes(x = ano, y = chuvoso)) + 
-  geom_col()
+  filter(cidade == "Campina Grande") %>% 
+  filter(ano >= 2002 & ano < 2018) %>% 
+    ggplot(aes(x = ano, y = tmedia, group = ano)) + 
+    geom_boxplot(alpha = .4, fill = "dark green", coef = 1000) +
+    geom_jitter(width = .2, color = "red", alpha = .5, height = 0.1)
+
 ```
 
 ## Chuva
@@ -65,15 +75,30 @@ climas %>%
 Como é a distribuição do volume de chuvas por semana em JP e CG? A chuva varia mais ou menos que a temperatura? O formato da distribuição é igual? 
 
 ### No geral, onde chove mais?
+Visualizando o gráfico simples abaixo, é claramente notável que que João Pessoa possui um número maior de volume de chuva.
 ```{r}
 climas %>% 
+  filter(ano > 2003) %>% 
   select(chuva, cidade) %>% 
   group_by(cidade) %>% 
   summarise(chuvosa = sum(chuva)) %>% 
   ggplot(mapping = aes(x = cidade, y = chuvosa)) + 
-  geom_col()
+  geom_col(width = .6, fill="blue")
 ```
 
 
 ### A distribuição é diferente em meses específicos? 
+Observando a distriubuição de chuva ao longo dos anos por mês, notamos que existem meses que são caracteristicamente mais chuvosos, entretando é possível verificar que não existe uma certeza de dizer que sempre chove muito naquele determinado mês, por exemplo, no mês de abril, existiram anos que choveram bastante e ao também existiram anos que quase não choveu.
+```{r}
+climas %>% 
+  filter(ano > 2003 & ano <= 2018) %>% 
+  ggplot(mapping = aes(x=ano, y = chuva)) +
+  geom_col(width = .6, fill = "dark red") + 
+  coord_flip() + 
+  facet_wrap(~ mes) +
+    labs(
+        x = "mês",
+        y = "temperatura média"
+    )
+```
 
